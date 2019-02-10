@@ -101,7 +101,7 @@ if __name__ == '__main__':
             download_songs(get_playlist_songs(playlist_id))
             sys.exit()
     except Exception as e:
-        print("No Playlist Found")
+        pass
     try:
         album_id = soup.select(".play")[0]["onclick"]
         album_id = ast.literal_eval(re.search("\[(.*?)\]", album_id).group())[1]
@@ -110,6 +110,8 @@ if __name__ == '__main__':
             download_songs(get_album_songs(album_id))
             sys.exit()
     except Exception as e:
-        print("No Album Found")
+        pass
+
+    print("No Playlist/Album Found")
 
 
