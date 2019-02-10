@@ -3,8 +3,9 @@
 ### Installation 
 
 ```sh
-pip3 install -r requirements.txt
-python3 Download.py
+mkvirtualenv -p $(which python3) saavn
+pip install -r requirements.txt
+python Download.py
 ```
 
 ### Usage
