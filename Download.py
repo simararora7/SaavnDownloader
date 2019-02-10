@@ -82,6 +82,9 @@ def get_playlist_songs(list_id):
 def get_album_songs(album_id):
     return get_songs('https://www.saavn.com/api.php?_format=json&__call=content.getAlbumDetails&albumid={0}'.format(album_id))
 
+def get_title(soup):
+    return soup.select(".page-title")[0].text
+
 if __name__ == '__main__':
     input_url = input('Enter Playlist/Album Url:').strip()
     try:
@@ -94,7 +97,7 @@ if __name__ == '__main__':
     try:
         playlist_id = soup.select(".flip-layout")[0]["data-listid"]
         if playlist_id is not None:
-            print("Downloading songs from playlist {0}".format(playlist_id))
+            print("Downloading songs from playlist \"{0}\"".format(get_title(soup)))
             download_songs(get_playlist_songs(playlist_id))
             sys.exit()
     except Exception as e:
@@ -103,7 +106,7 @@ if __name__ == '__main__':
         album_id = soup.select(".play")[0]["onclick"]
         album_id = ast.literal_eval(re.search("\[(.*?)\]", album_id).group())[1]
         if album_id is not None:
-            print("Downloading songs from album {0}".format(album_id))
+            print("Downloading songs from album \"{0}\"".format(get_title(soup)))
             download_songs(get_album_songs(album_id))
             sys.exit()
     except Exception as e:
