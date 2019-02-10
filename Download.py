@@ -1,7 +1,9 @@
+import ast
 import base64
 import html
 import json
 import os
+import re
 import urllib.request
 
 import logger
@@ -21,7 +23,7 @@ headers = {
     'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:49.0) Gecko/20100101 Firefox/49.0'
 }
 
-def setDecipher():
+def get_decipher():
     return des(b"38346591", ECB, b"\0\0\0\0\0\0\0\0", pad=None, padmode=PAD_PKCS5)
 
 def add_tags(filename, json_data, playlist_name):
@@ -43,7 +45,7 @@ def add_tags(filename, json_data, playlist_name):
     audio.save()
 
 def download_songs(songs_json):
-    des_cipher = setDecipher()
+    des_cipher = get_decipher()
     for song in songs_json['songs']:
         try:
             enc_url = base64.b64decode(song['encrypted_media_url'].strip())
@@ -66,17 +68,22 @@ def download_songs(songs_json):
         except Exception as e:
              logger.error(str(e))
 
-def get_playlist_songs(list_id):
+def get_songs(url):
     songs_json = []
-    respone = requests.get(
-        'https://www.saavn.com/api.php?listid={0}&_format=json&__call=playlist.getDetails'.format(list_id), verify=False, headers=headers)
-    if respone.ok:
+    respone = requests.get(url, verify=False, headers=headers)
+    if respone.status_code == 200:
         songs_json = list(filter(lambda x: x.startswith("{"), respone.text.splitlines()))[0]
         songs_json = json.loads(songs_json)
     return songs_json
 
+def get_playlist_songs(list_id):
+    return get_songs('https://www.saavn.com/api.php?listid={0}&_format=json&__call=playlist.getDetails'.format(list_id))
+
+def get_album_songs(album_id):
+    return get_songs('https://www.saavn.com/api.php?_format=json&__call=content.getAlbumDetails&albumid={0}'.format(album_id))
+
 if __name__ == '__main__':
-    input_url = input('Enter Playlist Url:').strip()
+    input_url = input('Enter Playlist/Album Url:').strip()
     try:
         res = requests.get(input_url, headers=headers)
     except Exception as e:
@@ -91,4 +98,15 @@ if __name__ == '__main__':
             download_songs(get_playlist_songs(playlist_id))
             sys.exit()
     except Exception as e:
-        logger.error(str(e))
+        print("No Playlist Found")
+    try:
+        album_id = soup.select(".play")[0]["onclick"]
+        album_id = ast.literal_eval(re.search("\[(.*?)\]", album_id).group())[1]
+        if album_id is not None:
+            print("Downloading songs from album {0}".format(album_id))
+            download_songs(get_album_songs(album_id))
+            sys.exit()
+    except Exception as e:
+        print("No Album Found")
+
+
