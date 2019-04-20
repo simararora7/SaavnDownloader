@@ -52,12 +52,14 @@ def download_songs(songs_json):
             dec_url = des_cipher.decrypt(enc_url, padmode=PAD_PKCS5).decode('utf-8')
             dec_url = dec_url.replace('_96.mp4', '_320.mp4')
             filename = html.unescape(song['song']) + '.m4a'
+            filenamemp3 = html.unescape(song['song']) + '.mp3'
             filename = filename.replace("\"", "'")
         except Exception as e:
             logger.error(str(e))
         try:
             location = os.path.join(os.path.sep, os.getcwd(), "songs", filename)
-            if os.path.isfile(location):
+            locationmp3 = os.path.join(os.path.sep, os.getcwd(), "songs", filenamemp3)
+            if os.path.isfile(location) or os.path.isfile(locationmp3):
                print("{0} already downloaded".format(filename))
             else :
                 print("Downloading {0}".format(filename))
